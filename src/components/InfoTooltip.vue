@@ -33,4 +33,10 @@ defineProps({
 .tooltip i {
   font-size: 1.4em;
 }
+
+@media screen and (max-height: 568px){
+  .tooltip{
+    font-size: 0.85em;
+  }
+}
 </style>

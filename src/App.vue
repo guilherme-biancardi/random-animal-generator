@@ -1,21 +1,32 @@
 <template>
   <main>
-      <LoadingComponent v-if="!state.loaded"></LoadingComponent>
-
-    <button
-      @click="getAnimalByIndex"
-      v-if="state.loaded && lenght > 1 && state.index != 0"
-    >
-      <MaterialIcon :icon="'mdi-chevron-left'"></MaterialIcon>
-    </button>
+    <LoadingComponent v-if="!state.loaded"></LoadingComponent>
+    <section v-show="state.loaded">
+      <ButtonIcon
+        @click="getAnimalByIndex"
+        :icon="'mdi-chevron-left'"
+        v-if="lenght > 1 && state.index != 0 && !state.buttonsMobileVisibility"
+      ></ButtonIcon>
       <CardAnimal
         :animal="state.animal"
-        v-show="state.loaded"
         @loadImage="loadImage"
+        :isMobile="state.buttonsMobileVisibility"
       ></CardAnimal>
-    <button @click="getAnimal" v-if="state.loaded">
-      <MaterialIcon :icon="'mdi-chevron-right'"></MaterialIcon>
-    </button>
+      <ButtonIcon
+        @click="getAnimal"
+        :icon="'mdi-chevron-right'"
+        v-if="!state.buttonsMobileVisibility"
+      ></ButtonIcon>
+      <div class="button-mobile" v-if="state.buttonsMobileVisibility">
+        <ButtonIcon
+          @click="getAnimalByIndex"
+          v-if="lenght > 1 && state.index != 0"
+          :icon="'mdi-chevron-left'"
+        >
+        </ButtonIcon>
+        <ButtonIcon @click="getAnimal" :icon="'mdi-chevron-right'"></ButtonIcon>
+      </div>
+    </section>
   </main>
 </template>
 
@@ -23,9 +34,9 @@
 import { computed, onMounted, reactive } from "vue";
 import { useIndex } from "./js";
 import CardAnimal from "./components/CardAnimal.vue";
-import MaterialIcon from "./components/MaterialIcon.vue";
 import LoadingComponent from "./components/LoadingComponent.vue";
 import { useStore } from "./store/store";
+import ButtonIcon from "./components/ButtonIcon.vue";
 
 const { axios } = useIndex();
 const store = useStore();
@@ -34,9 +45,13 @@ const state = reactive({
   animal: {},
   loaded: false,
   index: -1,
+  buttonsMobileVisibility: false,
 });
 
 const lenght = computed(() => store.getAnimals.length);
+const media = window.matchMedia("screen and (max-width: 768px)");
+
+const resize = (value) => (state.buttonsMobileVisibility = value);
 
 const getAnimalByIndex = () => {
   state.index -= 1;
@@ -58,6 +73,9 @@ const getAnimal = async () => {
 const loadImage = (value) => (state.loaded = value);
 
 onMounted(getAnimal);
+
+resize(media.matches);
+window.addEventListener("resize", () => resize(media.matches));
 </script>
 
 <style>
@@ -77,25 +95,42 @@ ul {
   list-style: none;
 }
 
+button{
+  outline: none;
+  border: none;
+  cursor: pointer;
+}
+
 main {
   width: 100%;
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  column-gap: 20px;
   background-color: #f0f0f0;
 }
 
-button {
-  outline: none;
-  border: none;
-  background-color: #ffffff;
-  color: var(--green);
-  box-shadow: var(--shadow);
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 2.5em;
-  cursor: pointer;
+section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  column-gap: 20px;
+}
+
+.button-mobile {
+  position: absolute;
+  margin: 0 auto;
+  bottom: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  column-gap: 16px;
+}
+
+@media screen and (max-width: 768px) {
+  main > section {
+    width: 100%;
+    height: 100vh;
+  }
 }
 </style>
